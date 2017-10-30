@@ -47,8 +47,36 @@ function toDegrees (radians) {
     return radians * (180/Math.PI);
 }
 
-function computeSpeed (point1, point2) {
+function computeDistance (point1, point2) {
+  res = (Math.pow((point1.arrForm[0] - point2.arrForm[0]), 2) + Math.pow((point1.arrForm[1] - point2.arrForm[1]),2) + Math.pow((point1.arrForm[1] - point2.arrForm[1]), 2));
+  return Math.sqrt(res);
+}
 
+function computeSpeed (point1, point2, time1, time2, r) {
+    vector = getVectorBetweenTwoPoints(point1.arrForm, point2.arrForm)
+    //line fn
+    lineEquation = new Line(point1, vector);
+
+    // get max points - getPointAtT w/+2r
+    // get min points - getPointAtT w/-2r
+    maxPoint1 = lineEquation.getPointAtT(time2+(2*r));
+    maxPoint2 = lineEquation.getPointAtT(time1-(2*r));
+    minPoint1 = lineEquation.getPointAtT(time2-(2*r));
+    minPoint2 = lineEquation.getPointAtT(time1+(2*r));
+
+    // Get Speeds
+    maxDistance = computeDistance(maxPoint1, maxPoint2);
+    minDistance = computeDistance(minPoint1, minPoint2);
+
+    // Calculate speed
+    timeDifference = time2 - time1;
+    maxSpeed = (maxDistance/timeDifference);
+    minSpeed = (minDistance/timeDifference);
+
+    // Returns Array
+    return [maxSpeed, minSpeed];
+
+    // I feel like theres a better way to do this. Feel free to minify/improve this function.
 }
 
 function computeAngle (point1, point2) {
@@ -65,6 +93,12 @@ function getAngleBetweenTwoVectors (vector1, vector2) {
 
 var x = new Point(...[5,4,2]);
 var y = new Point(...[3,1,6]);
+
+// testing compute speed
+// test[0] = maxSpeed, test[1] = minSpeed
+test = computeSpeed (x, y, 1, 3, 5);
+console.log(test[0]);
+console.log(test[1]);
 
 var newLine = getLineFunction (x, y);
 
