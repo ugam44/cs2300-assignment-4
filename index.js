@@ -1,7 +1,26 @@
-function Point (x, y, z) {
+var fs = require("fs"), filename = process.argv[2];
+var pointArr = [];
+
+/* -------------------------------
+Check for proper program usage
+------------------------------- */
+if (process.argv.length < 3) {
+  console.log('Usage: node . <filename.txt>');
+  console.log('Ex: node . in2.txt')
+  process.exit(1);
+}
+if (process.argv[2].split(".")[1] != 'txt'){
+    console.log("This is not the proper filetype")
+    console.log('Usage: node . <filename.txt>');
+    process.exit(1)
+}
+
+function Point (x, y, z, t) {
     this.x = x || 0;
     this.y = y || 0;
     this.z = z || 0;
+    this.t = t || 0;
+    // t is not added to arr form as this will break previous functions.
     this.arrForm = [this.x,this.y,this.z];
 }
 
@@ -94,12 +113,6 @@ function getAngleBetweenTwoVectors (vector1, vector2) {
 var x = new Point(...[5,4,2]);
 var y = new Point(...[3,1,6]);
 
-// testing compute speed
-// test[0] = maxSpeed, test[1] = minSpeed
-test = computeSpeed (x, y, 1, 3, 5);
-console.log(test[0]);
-console.log(test[1]);
-
 var newLine = getLineFunction (x, y);
 
 console.dir(newLine);
@@ -117,3 +130,46 @@ var v = getVectorBetweenTwoPoints(origin.arrForm, testPoint1.arrForm);
 var w = getVectorBetweenTwoPoints(origin.arrForm, testPoint2.arrForm);
 
 console.log(getAngleBetweenTwoVectors(v, w));
+
+/* -------------------------------
+Read in file
+Assign Parameter Variables
+Create point array
+------------------------------- */
+fs.readFile(filename, "utf8", function(err,data) {
+    if(err) throw err;
+
+    console.log("Loaded: " + filename);
+    filename = filename.split(".txt")[0]
+    outfile = "./" + filename + "out.png"
+    // first line of file determines parameters, rest of lines are projectile definitions
+    var [parameterLine, ...projectileLines] = data.split("\n");
+    parameterLine = parameterLine.split(" ").map(elem => Number(elem.replace("\r", "")));
+
+    var parameters = {
+        numOfImpacts: parameterLine[0],
+        fiberWidth: parameterLine[1],
+        fiberSpacing: parameterLine[2],
+        verticalSpacing: parameterLine[3],
+        radius: parseInt(parameterLine[2])/4,
+    };
+
+    projectileLines.forEach(function (line) {
+        // line format -- # of projectiles: proj0x-coord,proj0y-coord; proj1x-coord,proj1y-coord, etc.
+        // Example -- 3: 126,52; 46,439; 250,239
+        // Don't care about # of projectiles, just want each x,y pair into an array
+
+        try{
+            var splited = line.match(/\b[\w']+(?:[^\w\n]+[\w']+){0,3}\b/g);
+            splited.forEach(function(){
+              // break into coordinates
+              coords = splited[0].split(' ');
+              // create point
+              point = new Point(coords[0], coords[1], coords[2], coords[3]);
+              pointArray.push(point);
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    });
+});
