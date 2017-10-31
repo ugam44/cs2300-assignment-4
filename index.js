@@ -79,7 +79,7 @@ var testPoint1 = new Point(1,1,0);
 var testPoint2 = new Point(1,0,0);
 var origin = new Point();
 
-var v = getVectorBetweenTwoPoints(origin.arrForm, testPoint1.arrForm);
-var w = getVectorBetweenTwoPoints(origin.arrForm, testPoint2.arrForm);
+var v = getVectorBetweenTwoPoints(origin.arrForm, testPoint1.arrForm); // [1,1,0]
+var w = getVectorBetweenTwoPoints(origin.arrForm, testPoint2.arrForm); // [1,0,0]
 
-console.log(getAngleBetweenTwoVectors(v, w));
+console.log(getAngleBetweenTwoVectors(v, w)); // should be 45
