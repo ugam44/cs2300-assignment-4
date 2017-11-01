@@ -85,8 +85,8 @@ function computeSpeed(point1, point2) {
     // get min points - getPointAtT +2r, 0
     var maxPoint1 = topLineEquation.getPointAtT(t);
     var maxPoint2 = bottomLineEquation.getPointAtT(-t);
-    var minPoint1 = topLineEquation.getPointAtT(t);
-    var minPoint2 = bottomLineEquation.getPointAtT(-t);
+    var minPoint1 = topLineEquation.getPointAtT(-t);
+    var minPoint2 = bottomLineEquation.getPointAtT(t);
 
     // Get distances
     var maxDistance = computeDistance(maxPoint1, maxPoint2);
@@ -106,32 +106,50 @@ function computeSpeed(point1, point2) {
 }
 
 function computeXZAngle(point1, point2) {
+    var offset = parameters.radius - (0.5 * parameters.fiberWidth);
     // p = [px, py, pz]
-    var p = point1;
+    var minP = new Point(point1.x - offset, point1.y, point1.z)
+    var maxP = new Point(point1.x + offset, point1.y, point1.z)
     // q = [qx, py, qz]
-    var q = new Point(point2.x, point1.y, point2.z);
+    var minQ = new Point(point2.x + offset, point1.y, point2.z);
+    var maxQ = new Point(point2.x - offset, point1.y, point2.z);
     // r = [qx, py, pz]
-    var r = new Point(point2.x, point1.y, point1.z);
+    var minR = new Point(point2.x + offset, point1.y, point1.z);
+    var maxR = new Point(point2.x - offset, point1.y, point1.z);
     // v = q - p
-    var v = getVectorBetweenTwoPoints(p.arrForm, q.arrForm);
+    var minV = getVectorBetweenTwoPoints(minP.arrForm, minQ.arrForm);
+    var maxV = getVectorBetweenTwoPoints(maxP.arrForm, maxQ.arrForm);
     // w = r - p
-    var w = getVectorBetweenTwoPoints(p.arrForm, r.arrForm);
-    return getAngleBetweenTwoVectors(v, w);
-
+    var minW = getVectorBetweenTwoPoints(minP.arrForm, minR.arrForm);
+    var maxW = getVectorBetweenTwoPoints(maxP.arrForm, maxR.arrForm);
+    return {
+      maxAngle: getAngleBetweenTwoVectors(maxV, maxW),
+      minAngle: getAngleBetweenTwoVectors(minV, minW)
+    };
 }
 
+
 function computeYZAngle(point1, point2) {
+    var offset = parameters.radius - (0.5 * parameters.fiberWidth);
     // p = [px, py, pz]
-    var p = point1;
+    var minP = new Point(point1.x, point1.y - offset, point1.z);
+    var maxP = new Point(point1.x, point1.y + offset, point1.z);
     // q = [px, qy, qz]
-    var q = new Point(point1.x, point2.y, point2.z);
+    var minQ = new Point(point1.x, point2.y + offset, point2.z);
+    var maxQ = new Point(point1.x, point2.y - offset, point2.z);
     // r = [px, qy, pz]
-    var r = new Point(point1.x, point2.y, point1.z);
+    var minR = new Point(point1.x, point2.y + offset, point1.z);
+    var maxR = new Point(point1.x, point2.y - offset, point1.z);
     // v = q - p
-    var v = getVectorBetweenTwoPoints(p.arrForm, q.arrForm);
+    var minV = getVectorBetweenTwoPoints(minP.arrForm, minQ.arrForm);
+    var maxV = getVectorBetweenTwoPoints(maxP.arrForm, maxQ.arrForm);
     // w = r - p
-    var w = getVectorBetweenTwoPoints(p.arrForm, r.arrForm);
-    return getAngleBetweenTwoVectors(v, w);
+    var minW = getVectorBetweenTwoPoints(minP.arrForm, minR.arrForm);
+    var maxW = getVectorBetweenTwoPoints(maxP.arrForm, maxR.arrForm);
+    return {
+      maxAngle: getAngleBetweenTwoVectors(maxV, maxW),
+      minAngle: getAngleBetweenTwoVectors(minV, minW)
+    };
 }
 
 function getAngleBetweenTwoVectors(vector1, vector2) {
@@ -205,11 +223,11 @@ fs.readFile(filename, "utf8", function (err, data) {
             var yZ = computeYZAngle(largeZPoint, restPoint);
             var speed = computeSpeed(largeZPoint, restPoint);
 
-            if (xZ < minXZ) { minXZ = xZ; }
-            if (xZ > maxXZ) { maxXZ = xZ; }
+            if (xZ.minAngle < minXZ) { minXZ = xZ.minAngle; }
+            if (xZ.maxAngle > maxXZ) { maxXZ = xZ.maxAngle; }
 
-            if (yZ < minYZ) { minYZ = yZ; }
-            if (yZ > maxYZ) { maxYZ = yZ; }
+            if (yZ.minAngle < minYZ) { minYZ = yZ.minAngle; }
+            if (yZ.maxAngle > maxYZ) { maxYZ = yZ.maxAngle; }
 
             if (speed.minSpeed < minSpeed) { minSpeed = speed.minSpeed; }
             if (speed.maxSpeed > maxSpeed) { maxSpeed = speed.maxSpeed; }
