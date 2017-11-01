@@ -77,18 +77,18 @@ function computeSpeed(point1, point2, time1, time2, projectileRadius) {
     var vector = getVectorBetweenTwoPoints(bottomPoint.arrForm, topPoint.arrForm);
     console.log(vector);
 
-    var t = 2 * projectileRadius / getMagOfVector(vector);
+    var t = ((0.5 * parameters.fiberWidth) + projectileRadius) / getMagOfVector(vector);
 
     //line fn
     var topLineEquation = new Line(topPoint, vector);
     var bottomLineEquation = new Line(bottomPoint, vector);
 
-    // get max points - getPointAtT w/+2r
-    // get min points - getPointAtT w/-2r
+    // get max points - getPointAtT +2r, 0
+    // get min points - getPointAtT +2r, 0
     var maxPoint1 = topLineEquation.getPointAtT(t);
     var maxPoint2 = bottomLineEquation.getPointAtT(-t);
-    var minPoint1 = topLineEquation.getPointAtT(-t);
-    var minPoint2 = bottomLineEquation.getPointAtT(t);
+    var minPoint1 = topLineEquation.getPointAtT(t);
+    var minPoint2 = bottomLineEquation.getPointAtT(-t);
 
     console.log(...[maxPoint1, maxPoint2, minPoint1, minPoint2].map(point => point.arrForm));
 
@@ -153,12 +153,6 @@ function getAngleBetweenTwoVectors(vector1, vector2) {
 var x = new Point(...[5, 4, 6]);
 var y = new Point(...[3, 1, 2]);
 
-// testing compute speed
-// test[0] = maxSpeed, test[1] = minSpeed
-var test = computeSpeed(x, y, 100, 400, 2);
-console.log(test.maxSpeed);
-console.log(test.minSpeed);
-
 // var newLine = getLineFunction (x, y);
 
 // console.dir(newLine);
@@ -182,6 +176,8 @@ Read in file
 Assign Parameter Variables
 Create point array
 ------------------------------- */
+var parameters;
+var minXZ, maxXZ, minYZ, maxYZ, minSpeed, maxSpeed;
 fs.readFile(filename, "utf8", function (err, data) {
     if (err) throw err;
 
@@ -190,9 +186,16 @@ fs.readFile(filename, "utf8", function (err, data) {
     var outfile = "./" + filename + "out.png";
     // first line of file determines parameters, rest of lines are projectile definitions
     var [parameterLine, ...projectileLines] = data.split("\n");
+
+    // was an issue with projectileLines array containing an extra \n item
+    var index = projectileLines.indexOf("");
+    if (index !== -1) {
+        projectileLines.splice(index, 1);
+    }
+
     parameterLine = parameterLine.split(" ").map(elem => Number(elem.replace("\r", "")));
 
-    var parameters = {
+    parameters = {
         numOfImpacts: parameterLine[0],
         fiberWidth: parameterLine[1],
         fiberSpacing: parameterLine[2],
@@ -212,8 +215,36 @@ fs.readFile(filename, "utf8", function (err, data) {
                 // create point
                 pointArr.push(new Point(...coords));
             });
+
         } catch (e) {
             console.log(e);
         }
     });
+    var pointMap = pointArr.reduce((res, curr) => {
+      if (res[curr.z] == undefined) {
+        res[curr.z] = [];
+      }
+      res[curr.z].push(curr);
+      return res;
+    }, {})
+    var [largestZPoints, ...rest] = Object.keys(pointMap).sort((a,b)=>b-a).map(key => pointMap[key]);
+    largestZPoints.forEach(largeZPoint => {
+      rest.forEach(restPoint => {
+        xZ = computeXZAngle(largeZPoint, restPoint);
+        yZ = computeYZAngle(largeZPoint, restPoint);
+        speed = computeSpeed(largeZPoint, restPoint);
+
+        if (xZ < minXZ){ minXZ = xZ };
+        if (xZ > maxXZ){ maxXZ = xZ };
+
+        if (yZ < minYZ){ minYZ = yZ };
+        if (yZ > maxYZ){ maxYZ = yZ };
+
+        if (speed < minSpeed){ speed = minSpeed };
+        if (speed > maxSpeed){ speed = maxSpeed };
+
+      })
+    })
 });
+
+console.log(minXZ, maxXZ, minYZ, maxYZ, minSpeed, maxSpeed)
