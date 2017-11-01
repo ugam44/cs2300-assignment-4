@@ -247,7 +247,10 @@ fs.readFile(filename, "utf8", function (err, data) {
       })
     })
 
-    data = ("Min XZ Angle: " + minXZ + " degrees | Max XZ Angle: " + maxXZ + " degrees | Min YZ Angle: " + minYZ + " degrees | Max YZ Angle: " + maxYZ + " degrees | Min Speed: " + minSpeed + " ms | Max Speed: " + maxSpeed + " ms");
+    //data = ("Min XZ Angle: " + minXZ + " degrees | Max XZ Angle: " + maxXZ + " degrees | Min YZ Angle: " + minYZ + " degrees | Max YZ Angle: " + maxYZ + " degrees | Min Speed: " + minSpeed + " ms | Max Speed: " + maxSpeed + " ms");
+    // The assignment says the output is in format:
+    // minspeed maxspeed minxangle maxxangle minyangle maxyangle
+    data =  (minSpeed + " " + maxSpeed + minXZ + " " + maxXZ + " " + minYZ + " " + mayYZ)
 
     fs.writeFile("test.txt", data, function(err){
       if (err) throw err;
