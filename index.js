@@ -75,7 +75,6 @@ function computeSpeed(point1, point2, time1, time2, projectileRadius) {
     // top/bottom relative to Z-axis
     var [topPoint, bottomPoint] = [point1, point2].sort((a, b) => b.z - a.z);
     var vector = getVectorBetweenTwoPoints(bottomPoint.arrForm, topPoint.arrForm);
-    console.log(vector);
 
     var t = ((0.5 * parameters.fiberWidth) + projectileRadius) / getMagOfVector(vector);
 
@@ -90,12 +89,12 @@ function computeSpeed(point1, point2, time1, time2, projectileRadius) {
     var minPoint1 = topLineEquation.getPointAtT(t);
     var minPoint2 = bottomLineEquation.getPointAtT(-t);
 
-    console.log(...[maxPoint1, maxPoint2, minPoint1, minPoint2].map(point => point.arrForm));
+    //console.log(...[maxPoint1, maxPoint2, minPoint1, minPoint2].map(point => point.arrForm));
 
     // Get distances
     var maxDistance = computeDistance(maxPoint1, maxPoint2);
     var minDistance = computeDistance(minPoint1, minPoint2);
-    console.log(maxDistance, minDistance);
+    //console.log(maxDistance, minDistance);
 
     // Calculate speed
     var timeDifference = Math.abs(time2 - time1);
@@ -123,6 +122,7 @@ function computeXZAngle(point1, point2) {
     // w = r - p
     var w = getVectorBetweenTwoPoints(p.arrForm, r.arrForm);
     return getAngleBetweenTwoVectors(v, w);
+
 }
 
 function computeYZAngle(point1, point2) {
@@ -139,8 +139,8 @@ function computeYZAngle(point1, point2) {
     return getAngleBetweenTwoVectors(v, w);
 }
 
-console.log(computeXZAngle(new Point(), new Point(1, 1, 1)));
-console.log(computeYZAngle(new Point(), new Point(1, 1, 1)));
+//console.log(computeXZAngle(new Point(), new Point(1, 1, 1)));
+//console.log(computeYZAngle(new Point(), new Point(1, 1, 1)));
 
 function getAngleBetweenTwoVectors(vector1, vector2) {
     // theta = arccos( (A dot B) / (||A||*||B||) )
@@ -183,7 +183,7 @@ fs.readFile(filename, "utf8", function (err, data) {
 
     console.log("Loaded: " + filename);
     filename = filename.split(".txt")[0]
-    var outfile = "./" + filename + "out.png";
+    var outfile = "./" + filename + "out.txt";
     // first line of file determines parameters, rest of lines are projectile definitions
     var [parameterLine, ...projectileLines] = data.split("\n");
 
@@ -230,6 +230,7 @@ fs.readFile(filename, "utf8", function (err, data) {
     var [largestZPoints, ...rest] = Object.keys(pointMap).sort((a,b)=>b-a).map(key => pointMap[key]);
     largestZPoints.forEach(largeZPoint => {
       rest.forEach(restPoint => {
+        restPoint = restPoint[0];
         xZ = computeXZAngle(largeZPoint, restPoint);
         yZ = computeYZAngle(largeZPoint, restPoint);
         speed = computeSpeed(largeZPoint, restPoint);
@@ -245,6 +246,10 @@ fs.readFile(filename, "utf8", function (err, data) {
 
       })
     })
-});
 
-console.log(minXZ, maxXZ, minYZ, maxYZ, minSpeed, maxSpeed)
+    data = ("Min XZ Angle: " + minXZ + " degrees | Max XZ Angle: " + maxXZ + " degrees | Min YZ Angle: " + minYZ + " degrees | Max YZ Angle: " + maxYZ + " degrees | Min Speed: " + minSpeed + " ms | Max Speed: " + maxSpeed + " ms");
+
+    fs.writeFile("test.txt", data, function(err){
+      if (err) throw err;
+    });
+});
