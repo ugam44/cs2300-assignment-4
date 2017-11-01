@@ -211,14 +211,14 @@ fs.readFile(filename, "utf8", function (err, data) {
             if (yZ < minYZ) { minYZ = yZ; }
             if (yZ > maxYZ) { maxYZ = yZ; }
 
-            if (speed.minSpeed < minSpeed) { speed = minSpeed; }
-            if (speed.maxSpeed > maxSpeed) { speed = maxSpeed; }
+            if (speed.minSpeed < minSpeed) { minSpeed = speed.minSpeed; }
+            if (speed.maxSpeed > maxSpeed) { maxSpeed = speed.maxSpeed; }
 
         });
     });
 
     //data = ("Min XZ Angle: " + minXZ + " degrees | Max XZ Angle: " + maxXZ + " degrees | Min YZ Angle: " + minYZ + " degrees | Max YZ Angle: " + maxYZ + " degrees | Min Speed: " + minSpeed + " ms | Max Speed: " + maxSpeed + " ms");
-    
+
     // The assignment says the output is in format:
     // minspeed maxspeed minxangle maxxangle minyangle maxyangle
     data =  (minSpeed + " " + maxSpeed + " " + minXZ + " " + maxXZ + " " + minYZ + " " + maxYZ);
