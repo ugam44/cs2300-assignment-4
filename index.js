@@ -71,12 +71,12 @@ function computeDistance(point1, point2) {
     return getMagOfVector(getVectorBetweenTwoPoints(point1.arrForm, point2.arrForm));
 }
 
-function computeSpeed(point1, point2, time1, time2, projectileRadius) {
+function computeSpeed(point1, point2) {
     // top/bottom relative to Z-axis
     var [topPoint, bottomPoint] = [point1, point2].sort((a, b) => b.z - a.z);
     var vector = getVectorBetweenTwoPoints(bottomPoint.arrForm, topPoint.arrForm);
 
-    var t = ((0.5 * parameters.fiberWidth) + projectileRadius) / getMagOfVector(vector);
+    var t = ((0.5 * parameters.fiberWidth) + parameters.radius) / getMagOfVector(vector);
 
     //line fn
     var topLineEquation = new Line(topPoint, vector);
@@ -97,7 +97,7 @@ function computeSpeed(point1, point2, time1, time2, projectileRadius) {
     //console.log(maxDistance, minDistance);
 
     // Calculate speed
-    var timeDifference = Math.abs(time2 - time1);
+    var timeDifference = Math.abs(topPoint.t - bottomPoint.t);
     var maxSpeed = maxDistance / timeDifference;
     var minSpeed = minDistance / timeDifference;
 
@@ -145,7 +145,7 @@ function computeYZAngle(point1, point2) {
 function getAngleBetweenTwoVectors(vector1, vector2) {
     // theta = arccos( (A dot B) / (||A||*||B||) )
     var dotProduct = getDotProduct(vector1, vector2);
-    var rightSide = dotProduct / (getMagOfVector(vector1) * getMagOfVector(vector2));
+    var rightSide = (dotProduct / (getMagOfVector(vector1) * getMagOfVector(vector2))) || 0;
     var arcCos = Math.acos(rightSide);
     return toDegrees(arcCos);
 }
@@ -177,7 +177,9 @@ Assign Parameter Variables
 Create point array
 ------------------------------- */
 var parameters;
-var minXZ, maxXZ, minYZ, maxYZ, minSpeed, maxSpeed;
+var minXZ, maxXZ, maxYZ, minYZ, minSpeed, maxSpeed;
+maxSpeed = maxXZ = maxYZ = -Infinity;
+minYZ = minSpeed = minXZ = Infinity;
 fs.readFile(filename, "utf8", function (err, data) {
     if (err) throw err;
 
@@ -211,7 +213,7 @@ fs.readFile(filename, "utf8", function (err, data) {
             var splited = line.match(/\b[\w']+(?:[^\w\n]+[\w']+){0,3}\b/g);
             splited.forEach(function (elem) {
                 // break into coordinates
-                var coords = elem.split(" ");
+                var coords = elem.split(" ").map(Number);
                 // create point
                 pointArr.push(new Point(...coords));
             });
@@ -221,35 +223,34 @@ fs.readFile(filename, "utf8", function (err, data) {
         }
     });
     var pointMap = pointArr.reduce((res, curr) => {
-      if (res[curr.z] == undefined) {
-        res[curr.z] = [];
-      }
-      res[curr.z].push(curr);
-      return res;
+        if (res[curr.z] == undefined) {
+            res[curr.z] = [];
+        }
+        res[curr.z].push(curr);
+        return res;
     }, {})
-    var [largestZPoints, ...rest] = Object.keys(pointMap).sort((a,b)=>b-a).map(key => pointMap[key]);
+    var [largestZPoints, rest] = Object.keys(pointMap).sort((a, b) => b - a).map(key => pointMap[key]);
     largestZPoints.forEach(largeZPoint => {
-      rest.forEach(restPoint => {
-        restPoint = restPoint[0];
-        xZ = computeXZAngle(largeZPoint, restPoint);
-        yZ = computeYZAngle(largeZPoint, restPoint);
-        speed = computeSpeed(largeZPoint, restPoint);
+        rest.forEach(restPoint => {
+            var xZ = computeXZAngle(largeZPoint, restPoint);
+            var yZ = computeYZAngle(largeZPoint, restPoint);
+            var speed = computeSpeed(largeZPoint, restPoint);
 
-        if (xZ < minXZ){ minXZ = xZ };
-        if (xZ > maxXZ){ maxXZ = xZ };
+            if (xZ < minXZ) { minXZ = xZ; }
+            if (xZ > maxXZ) { maxXZ = xZ; }
 
-        if (yZ < minYZ){ minYZ = yZ };
-        if (yZ > maxYZ){ maxYZ = yZ };
+            if (yZ < minYZ) { minYZ = yZ; }
+            if (yZ > maxYZ) { maxYZ = yZ; }
 
-        if (speed < minSpeed){ speed = minSpeed };
-        if (speed > maxSpeed){ speed = maxSpeed };
+            if (speed.minSpeed < minSpeed) { speed = minSpeed; }
+            if (speed.maxSpeed > maxSpeed) { speed = maxSpeed; }
 
-      })
-    })
+        });
+    });
 
     data = ("Min XZ Angle: " + minXZ + " degrees | Max XZ Angle: " + maxXZ + " degrees | Min YZ Angle: " + minYZ + " degrees | Max YZ Angle: " + maxYZ + " degrees | Min Speed: " + minSpeed + " ms | Max Speed: " + maxSpeed + " ms");
 
-    fs.writeFile("test.txt", data, function(err){
-      if (err) throw err;
+    fs.writeFile("test.txt", data, function (err) {
+        if (err) throw err;
     });
 });
