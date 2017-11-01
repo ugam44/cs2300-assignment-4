@@ -1,6 +1,5 @@
 var fs = require("fs"),
     filename = process.argv[2];
-var pointArr = [];
 
 /* -------------------------------
 Check for proper program usage
@@ -89,8 +88,6 @@ function computeSpeed(point1, point2, time1, time2, projectileRadius) {
     var minPoint1 = topLineEquation.getPointAtT(t);
     var minPoint2 = bottomLineEquation.getPointAtT(-t);
 
-    //console.log(...[maxPoint1, maxPoint2, minPoint1, minPoint2].map(point => point.arrForm));
-
     // Get distances
     var maxDistance = computeDistance(maxPoint1, maxPoint2);
     var minDistance = computeDistance(minPoint1, minPoint2);
@@ -106,8 +103,6 @@ function computeSpeed(point1, point2, time1, time2, projectileRadius) {
         maxSpeed,
         minSpeed
     };
-
-    // I feel like theres a better way to do this. Feel free to minify/improve this function.
 }
 
 function computeXZAngle(point1, point2) {
@@ -139,9 +134,6 @@ function computeYZAngle(point1, point2) {
     return getAngleBetweenTwoVectors(v, w);
 }
 
-//console.log(computeXZAngle(new Point(), new Point(1, 1, 1)));
-//console.log(computeYZAngle(new Point(), new Point(1, 1, 1)));
-
 function getAngleBetweenTwoVectors(vector1, vector2) {
     // theta = arccos( (A dot B) / (||A||*||B||) )
     var dotProduct = getDotProduct(vector1, vector2);
@@ -153,30 +145,13 @@ function getAngleBetweenTwoVectors(vector1, vector2) {
 var x = new Point(...[5, 4, 6]);
 var y = new Point(...[3, 1, 2]);
 
-// var newLine = getLineFunction (x, y);
-
-// console.dir(newLine);
-
-// console.log(newLine.getPointAtT(0));
-
-// console.log(getMagOfVector([2,3,-4]));
-
-
-// var testPoint1 = new Point(1,1,0);
-// var testPoint2 = new Point(1,0,0);
-// var origin = new Point();
-
-// var v = getVectorBetweenTwoPoints(origin.arrForm, testPoint1.arrForm); // [1,1,0]
-// var w = getVectorBetweenTwoPoints(origin.arrForm, testPoint2.arrForm); // [1,0,0]
-
-//console.log(getAngleBetweenTwoVectors(v, w));
-
 /* -------------------------------
 Read in file
 Assign Parameter Variables
 Create point array
 ------------------------------- */
 var parameters, minXZ, maxXZ, minYZ, maxYZ, minSpeed, maxSpeed;
+var pointArr = [];
 fs.readFile(filename, "utf8", function (err, data) {
     if (err) throw err;
 
@@ -202,10 +177,6 @@ fs.readFile(filename, "utf8", function (err, data) {
         radius: parseInt(parameterLine[2]) / 4,
     };
     projectileLines.forEach(function (line) {
-        // line format -- # of projectiles: proj0x-coord,proj0y-coord; proj1x-coord,proj1y-coord, etc.
-        // Example -- 3: 126,52; 46,439; 250,239
-        // Don't care about # of projectiles, just want each x,y pair into an array
-
         try {
             var splited = line.match(/\b[\w']+(?:[^\w\n]+[\w']+){0,3}\b/g);
             splited.forEach(function (elem) {
@@ -219,13 +190,15 @@ fs.readFile(filename, "utf8", function (err, data) {
             console.log(e);
         }
     });
+
     var pointMap = pointArr.reduce((res, curr) => {
       if (res[curr.z] == undefined) {
         res[curr.z] = [];
       }
       res[curr.z].push(curr);
       return res;
-    }, {})
+    }, {});
+
     var [largestZPoints, ...rest] = Object.keys(pointMap).sort((a,b)=>b-a).map(key => pointMap[key]);
     largestZPoints.forEach(largeZPoint => {
       rest.forEach(restPoint => {
@@ -242,14 +215,14 @@ fs.readFile(filename, "utf8", function (err, data) {
 
         if (speed < minSpeed){ speed = minSpeed };
         if (speed > maxSpeed){ speed = maxSpeed };
-
       })
     })
 
     //data = ("Min XZ Angle: " + minXZ + " degrees | Max XZ Angle: " + maxXZ + " degrees | Min YZ Angle: " + minYZ + " degrees | Max YZ Angle: " + maxYZ + " degrees | Min Speed: " + minSpeed + " ms | Max Speed: " + maxSpeed + " ms");
+    
     // The assignment says the output is in format:
     // minspeed maxspeed minxangle maxxangle minyangle maxyangle
-    data =  (minSpeed + " " + maxSpeed + " " + minXZ + " " + maxXZ + " " + minYZ + " " + maxYZ)
+    data =  (minSpeed + " " + maxSpeed + " " + minXZ + " " + maxXZ + " " + minYZ + " " + maxYZ);
 
     fs.writeFile("test.txt", data, function(err){
       if (err) throw err;
