@@ -176,8 +176,7 @@ Read in file
 Assign Parameter Variables
 Create point array
 ------------------------------- */
-var parameters;
-var minXZ, maxXZ, minYZ, maxYZ, minSpeed, maxSpeed;
+var parameters, minXZ, maxXZ, minYZ, maxYZ, minSpeed, maxSpeed;
 fs.readFile(filename, "utf8", function (err, data) {
     if (err) throw err;
 
@@ -250,7 +249,7 @@ fs.readFile(filename, "utf8", function (err, data) {
     //data = ("Min XZ Angle: " + minXZ + " degrees | Max XZ Angle: " + maxXZ + " degrees | Min YZ Angle: " + minYZ + " degrees | Max YZ Angle: " + maxYZ + " degrees | Min Speed: " + minSpeed + " ms | Max Speed: " + maxSpeed + " ms");
     // The assignment says the output is in format:
     // minspeed maxspeed minxangle maxxangle minyangle maxyangle
-    data =  (minSpeed + " " + maxSpeed + minXZ + " " + maxXZ + " " + minYZ + " " + mayYZ)
+    data =  (minSpeed + " " + maxSpeed + " " + minXZ + " " + maxXZ + " " + minYZ + " " + maxYZ)
 
     fs.writeFile("test.txt", data, function(err){
       if (err) throw err;
