@@ -72,6 +72,7 @@ function computeDistance(point1, point2) {
 
 function computeSpeed(point1, point2) {
     // top/bottom relative to Z-axis
+    var delta = 0.999;
     var [topPoint, bottomPoint] = [point1, point2].sort((a, b) => b.z - a.z);
     var vector = getVectorBetweenTwoPoints(bottomPoint.arrForm, topPoint.arrForm);
 
@@ -95,9 +96,15 @@ function computeSpeed(point1, point2) {
 
     // Calculate speed
     var timeDifference = Math.abs(topPoint.t - bottomPoint.t);
-    var maxSpeed = maxDistance / timeDifference;
-    var minSpeed = minDistance / timeDifference;
-
+    if(timeDifference )
+    if (timeDifference >= 2){
+      var maxSpeed = maxDistance / ((timeDifference - 2) + delta);
+    } else {
+      var maxSpeed = maxDistance / (0.0001);
+    }
+    var minSpeed = minDistance / (timeDifference + delta);
+    minSpeed *= 1000;
+    maxSpeed *= 1000;
     // Returns Array
     return {
         maxSpeed,
@@ -106,7 +113,7 @@ function computeSpeed(point1, point2) {
 }
 
 function computeXZAngle(point1, point2) {
-    var offset = parameters.radius - (0.5 * parameters.fiberWidth);
+    var offset = parameters.radius + (0.5 * parameters.fiberWidth);
     // p = [px, py, pz]
     var minP = new Point(point1.x - offset, point1.y, point1.z)
     var maxP = new Point(point1.x + offset, point1.y, point1.z)
@@ -122,15 +129,19 @@ function computeXZAngle(point1, point2) {
     // w = r - p
     var minW = getVectorBetweenTwoPoints(minP.arrForm, minR.arrForm);
     var maxW = getVectorBetweenTwoPoints(maxP.arrForm, maxR.arrForm);
+
+    var minAngle = getAngleBetweenTwoVectors(minV, minW);
+    var maxAngle = getAngleBetweenTwoVectors(maxV, maxW);
+
     return {
-      maxAngle: getAngleBetweenTwoVectors(maxV, maxW),
-      minAngle: getAngleBetweenTwoVectors(minV, minW)
+      maxAngle: maxW[0] > 0 ? maxAngle : 180 - maxAngle,
+      minAngle: minW[0] > 0 ? minAngle : 180 - minAngle
     };
 }
 
 
 function computeYZAngle(point1, point2) {
-    var offset = parameters.radius - (0.5 * parameters.fiberWidth);
+    var offset = parameters.radius + (0.5 * parameters.fiberWidth);
     // p = [px, py, pz]
     var minP = new Point(point1.x, point1.y - offset, point1.z);
     var maxP = new Point(point1.x, point1.y + offset, point1.z);
@@ -146,9 +157,13 @@ function computeYZAngle(point1, point2) {
     // w = r - p
     var minW = getVectorBetweenTwoPoints(minP.arrForm, minR.arrForm);
     var maxW = getVectorBetweenTwoPoints(maxP.arrForm, maxR.arrForm);
+
+    var minAngle = getAngleBetweenTwoVectors(minV, minW);
+    var maxAngle = getAngleBetweenTwoVectors(maxV, maxW);
+
     return {
-      maxAngle: getAngleBetweenTwoVectors(maxV, maxW),
-      minAngle: getAngleBetweenTwoVectors(minV, minW)
+      maxAngle: maxW[1] > 0 ? maxAngle : 180 - maxAngle,
+      minAngle: minW[1] > 0 ? minAngle : 180 - minAngle
     };
 }
 
@@ -219,8 +234,8 @@ fs.readFile(filename, "utf8", function (err, data) {
     var [largestZPoints, rest] = Object.keys(pointMap).sort((a, b) => b - a).map(key => pointMap[key]);
     largestZPoints.forEach(largeZPoint => {
         rest.forEach(restPoint => {
-            var xZ = computeXZAngle(largeZPoint, restPoint);
-            var yZ = computeYZAngle(largeZPoint, restPoint);
+            var xZ = computeXZAngle(restPoint, largeZPoint);
+            var yZ = computeYZAngle(restPoint, largeZPoint);
             var speed = computeSpeed(largeZPoint, restPoint);
 
             if (xZ.minAngle < minXZ) { minXZ = xZ.minAngle; }
@@ -231,7 +246,6 @@ fs.readFile(filename, "utf8", function (err, data) {
 
             if (speed.minSpeed < minSpeed) { minSpeed = speed.minSpeed; }
             if (speed.maxSpeed > maxSpeed) { maxSpeed = speed.maxSpeed; }
-
         });
     });
 
@@ -239,7 +253,7 @@ fs.readFile(filename, "utf8", function (err, data) {
 
     // The assignment says the output is in format:
     // minspeed maxspeed minxangle maxxangle minyangle maxyangle
-    data =  (minSpeed + " " + maxSpeed + " " + minXZ + " " + maxXZ + " " + minYZ + " " + maxYZ);
+    data =  (minSpeed + " m/s " + maxSpeed + " m/s " + minXZ + " deg " + maxXZ + " deg " + minYZ + " deg " + maxYZ + " deg");
 
     fs.writeFile("test.txt", data, function (err) {
         if (err) throw err;
