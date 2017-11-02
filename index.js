@@ -195,7 +195,7 @@ fs.readFile(filename, "utf8", function (err, data) {
     var output = outputLeft[0] + "-out.txt";
 
     // first line of file determines parameters, rest of lines are projectile definitions
-    var [parameterLine, ...projectileLines] = data.split("\n");
+    var [parameterLine, ...projectileLines] = data.split("\r\n").filter(Boolean);
 
     // was an issue with projectileLines array containing an extra \n item
     var index = projectileLines.indexOf("");
@@ -203,7 +203,7 @@ fs.readFile(filename, "utf8", function (err, data) {
         projectileLines.splice(index, 1);
     }
 
-    parameterLine = parameterLine.split(" ").map(elem => Number(elem.replace("\r", "")));
+    parameterLine = parameterLine.split(" ").map(elem => Number(elem));
 
     parameters = {
         numOfImpacts: parameterLine[0],
@@ -214,13 +214,17 @@ fs.readFile(filename, "utf8", function (err, data) {
     };
     projectileLines.forEach(function (line) {
         try {
-            var splited = line.match(/\b[\w']+(?:[^\w\n]+[\w']+){0,3}\b/g);
-            splited.forEach(function (elem) {
-                // break into coordinates
-                var coords = elem.split(" ").map(Number);
-                // create point
-                pointArr.push(new Point(...coords));
-            });
+            var splited = line.split(/\s+/g).map(Number);
+            while (splited.length) {
+                pointArr.push(new Point(...splited.splice(0, 4)));
+            }
+            // var splited = line.match(/\b[\w']+(?:[^\w\n]+[\w']+){0,3}\b/g);
+            // splited.forEach(function (elem) {
+            //     // break into coordinates
+            //     var coords = elem.split(" ").map(Number);
+            //     // create point
+            //     pointArr.push(new Point(...coords));
+            // });
 
         } catch (e) {
             console.log(e);
