@@ -176,7 +176,7 @@ function getAngleBetweenTwoVectors(vector1, vector2) {
 }
 
 function truncateDecimal(number){
-  return Number(number.toFixed(2))
+  return number.toFixed(2)
 }
 
 /* -------------------------------
