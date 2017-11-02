@@ -95,7 +95,7 @@ function computeSpeed(point1, point2) {
 
     var minSpeed = minDistance / (timeDifference + delta);
     // assume minimum time difference is 1 nanosecond
-    var maxSpeed = maxDistance / (0.0001);
+    var maxSpeed = maxDistance / (0.001);
     if (timeDifference && timeDifference >= 2) {
         maxSpeed = maxDistance / ((timeDifference - 2) + delta);
     }
