@@ -47,11 +47,11 @@ function getVectorBetweenTwoPoints(r, q) {
 }
 
 function getMagOfVector(vector) {
-    return getDotProduct(vector, vector);
+    return Math.sqrt(getDotProduct(vector, vector));
 }
 
 function getDotProduct(vector1, vector2) {
-    return Math.sqrt(vector1.reduce((total, current, index) => total + current * vector2[index], 0));
+    return vector1.reduce((total, current, index) => total + current * vector2[index], 0);
 }
 
 function toDegrees(radians) {
@@ -210,7 +210,7 @@ fs.readFile(filename, "utf8", function (err, data) {
         fiberWidth: parameterLine[1],
         fiberSpacing: parameterLine[2],
         verticalSpacing: parameterLine[3],
-        radius: parseInt(parameterLine[2]) / 4,
+        radius: Number(parameterLine[2]) / 4,
     };
     projectileLines.forEach(function (line) {
         try {
