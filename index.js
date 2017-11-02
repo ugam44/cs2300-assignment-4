@@ -5,14 +5,14 @@ var fs = require("fs"),
 Check for proper program usage
 ------------------------------- */
 if (process.argv.length < 3) {
-    console.log('Usage: node . <filename.txt>');
-    console.log('Ex: node . in2.txt')
+    console.log("Usage: node . <filename.txt>");
+    console.log("Ex: node . in2.txt");
     process.exit(1);
 }
-if (process.argv[2].split(".")[1] != 'txt') {
-    console.log("This is not the proper filetype")
-    console.log('Usage: node . <filename.txt>');
-    process.exit(1)
+if (process.argv[2].split(".")[1] != "txt") {
+    console.log("This is not the proper filetype");
+    console.log("Usage: node . <filename.txt>");
+    process.exit(1);
 }
 
 function Point(x, y, z, t) {
@@ -46,20 +46,12 @@ function getVectorBetweenTwoPoints(r, q) {
     return q.map((point, index) => point - r[index]);
 }
 
-function getLineFunction(point1, point2) {
-    return new Line(point1, getVectorBetweenTwoPoints(point1.arrForm, point2.arrForm));
-}
-
 function getMagOfVector(vector) {
     return getDotProduct(vector, vector);
 }
 
 function getDotProduct(vector1, vector2) {
     return Math.sqrt(vector1.reduce((total, current, index) => total + current * vector2[index], 0));
-}
-
-function toRadians(degrees) {
-    return degrees * (Math.PI / 180);
 }
 
 function toDegrees(radians) {
@@ -72,51 +64,57 @@ function computeDistance(point1, point2) {
 
 function computeSpeed(point1, point2) {
     // top/bottom relative to Z-axis
+    // time difference to factor in microsecond rounding
     var delta = 0.999;
     var [topPoint, bottomPoint] = [point1, point2].sort((a, b) => b.z - a.z);
     var vector = getVectorBetweenTwoPoints(bottomPoint.arrForm, topPoint.arrForm);
 
+    // t is the point in the line equation that gives us the point that is exactly 1 radius away from the edge of the fiber.
+    // t = ((1/2 fiber width) + radius) / ||v||
     var t = ((0.5 * parameters.fiberWidth) + parameters.radius) / getMagOfVector(vector);
 
-    //line fn
+    //line fn for top-most point. t = 0 gives topPoint
     var topLineEquation = new Line(topPoint, vector);
+    //line fn for bottom-most point. t = 0 gives bottomPoint
     var bottomLineEquation = new Line(bottomPoint, vector);
 
-    // get max points - getPointAtT +2r, 0
-    // get min points - getPointAtT +2r, 0
+    // get max points
     var maxPoint1 = topLineEquation.getPointAtT(t);
     var maxPoint2 = bottomLineEquation.getPointAtT(-t);
+
+    // get min points
     var minPoint1 = topLineEquation.getPointAtT(-t);
     var minPoint2 = bottomLineEquation.getPointAtT(t);
 
     // Get distances
     var maxDistance = computeDistance(maxPoint1, maxPoint2);
     var minDistance = computeDistance(minPoint1, minPoint2);
-    //console.log(maxDistance, minDistance);
 
     // Calculate speed
     var timeDifference = Math.abs(topPoint.t - bottomPoint.t);
-    if(timeDifference )
-    if (timeDifference >= 2){
-      var maxSpeed = maxDistance / ((timeDifference - 2) + delta);
-    } else {
-      var maxSpeed = maxDistance / (0.0001);
-    }
+    
     var minSpeed = minDistance / (timeDifference + delta);
+    // assume minimum time difference is 1 nanosecond
+    var maxSpeed = maxDistance / (0.0001);
+    if (timeDifference && timeDifference >= 2) {
+        maxSpeed = maxDistance / ((timeDifference - 2) + delta);
+    }
+    
+    // convert mm per microsecond to meters per second
     minSpeed *= 1000;
     maxSpeed *= 1000;
-    // Returns Array
+
     return {
-        maxSpeed,
-        minSpeed
+        maxSpeed: maxSpeed*1000,
+        minSpeed: minSpeed*1000
     };
 }
 
 function computeXZAngle(point1, point2) {
     var offset = parameters.radius + (0.5 * parameters.fiberWidth);
     // p = [px, py, pz]
-    var minP = new Point(point1.x - offset, point1.y, point1.z)
-    var maxP = new Point(point1.x + offset, point1.y, point1.z)
+    var minP = new Point(point1.x - offset, point1.y, point1.z);
+    var maxP = new Point(point1.x + offset, point1.y, point1.z);
     // q = [qx, py, qz]
     var minQ = new Point(point2.x + offset, point1.y, point2.z);
     var maxQ = new Point(point2.x - offset, point1.y, point2.z);
@@ -134,8 +132,8 @@ function computeXZAngle(point1, point2) {
     var maxAngle = getAngleBetweenTwoVectors(maxV, maxW);
 
     return {
-      maxAngle: maxW[0] > 0 ? maxAngle : 180 - maxAngle,
-      minAngle: minW[0] > 0 ? minAngle : 180 - minAngle
+        maxAngle: maxW[0] > 0 ? maxAngle : 180 - maxAngle,
+        minAngle: minW[0] > 0 ? minAngle : 180 - minAngle
     };
 }
 
@@ -162,8 +160,8 @@ function computeYZAngle(point1, point2) {
     var maxAngle = getAngleBetweenTwoVectors(maxV, maxW);
 
     return {
-      maxAngle: maxW[1] > 0 ? maxAngle : 180 - maxAngle,
-      minAngle: minW[1] > 0 ? minAngle : 180 - minAngle
+        maxAngle: maxW[1] > 0 ? maxAngle : 180 - maxAngle,
+        minAngle: minW[1] > 0 ? minAngle : 180 - minAngle
     };
 }
 
@@ -176,7 +174,7 @@ function getAngleBetweenTwoVectors(vector1, vector2) {
 }
 
 function truncateDecimal(number){
-  return number.toFixed(2)
+    return number.toFixed(2);
 }
 
 /* -------------------------------
@@ -193,8 +191,7 @@ fs.readFile(filename, "utf8", function (err, data) {
     if (err) throw err;
 
     console.log("Loaded: " + filename);
-    filename = filename.split(".txt")[0];
-    var outfile = "./" + filename + "out.txt";
+
     // first line of file determines parameters, rest of lines are projectile definitions
     var [parameterLine, ...projectileLines] = data.split("\n");
 
@@ -253,10 +250,9 @@ fs.readFile(filename, "utf8", function (err, data) {
         });
     });
 
-    //data = ("Min XZ Angle: " + minXZ + " degrees | Max XZ Angle: " + maxXZ + " degrees | Min YZ Angle: " + minYZ + " degrees | Max YZ Angle: " + maxYZ + " degrees | Min Speed: " + minSpeed + " ms | Max Speed: " + maxSpeed + " ms");
-
     // The assignment says the output is in format:
     // minspeed maxspeed minxangle maxxangle minyangle maxyangle
+    // speed in meters/second, angle in degrees
     data =  (truncateDecimal(minSpeed) + " m/s " + truncateDecimal(maxSpeed) + " m/s " + truncateDecimal(minXZ) + " deg " + truncateDecimal(maxXZ) + " deg " + truncateDecimal(minYZ) + " deg " + truncateDecimal(maxYZ) + " deg");
 
     fs.writeFile("test.txt", data, function (err) {
