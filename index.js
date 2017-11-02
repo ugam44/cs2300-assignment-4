@@ -105,8 +105,8 @@ function computeSpeed(point1, point2) {
     maxSpeed *= 1000;
 
     return {
-        maxSpeed: maxSpeed*1000,
-        minSpeed: minSpeed*1000
+        maxSpeed: maxSpeed,
+        minSpeed: minSpeed
     };
 }
 
@@ -191,8 +191,8 @@ fs.readFile(filename, "utf8", function (err, data) {
     if (err) throw err;
 
     console.log("Loaded: " + filename);
-    outputLeft = filename.split(".")
-    output = outputLeft[0] + "-out.txt"
+    var outputLeft = filename.split(".");
+    var output = outputLeft[0] + "-out.txt";
 
     // first line of file determines parameters, rest of lines are projectile definitions
     var [parameterLine, ...projectileLines] = data.split("\n");
