@@ -175,6 +175,10 @@ function getAngleBetweenTwoVectors(vector1, vector2) {
     return toDegrees(arcCos);
 }
 
+function truncateDecimal(number){
+  return Number(number.toFixed(2))
+}
+
 /* -------------------------------
 Read in file
 Assign Parameter Variables
@@ -253,7 +257,7 @@ fs.readFile(filename, "utf8", function (err, data) {
 
     // The assignment says the output is in format:
     // minspeed maxspeed minxangle maxxangle minyangle maxyangle
-    data =  (minSpeed + " m/s " + maxSpeed + " m/s " + minXZ + " deg " + maxXZ + " deg " + minYZ + " deg " + maxYZ + " deg");
+    data =  (truncateDecimal(minSpeed) + " m/s " + truncateDecimal(maxSpeed) + " m/s " + truncateDecimal(minXZ) + " deg " + truncateDecimal(maxXZ) + " deg " + truncateDecimal(minYZ) + " deg " + truncateDecimal(maxYZ) + " deg");
 
     fs.writeFile("test.txt", data, function (err) {
         if (err) throw err;
