@@ -92,14 +92,14 @@ function computeSpeed(point1, point2) {
 
     // Calculate speed
     var timeDifference = Math.abs(topPoint.t - bottomPoint.t);
-    
+
     var minSpeed = minDistance / (timeDifference + delta);
     // assume minimum time difference is 1 nanosecond
     var maxSpeed = maxDistance / (0.0001);
     if (timeDifference && timeDifference >= 2) {
         maxSpeed = maxDistance / ((timeDifference - 2) + delta);
     }
-    
+
     // convert mm per microsecond to meters per second
     minSpeed *= 1000;
     maxSpeed *= 1000;
@@ -191,6 +191,8 @@ fs.readFile(filename, "utf8", function (err, data) {
     if (err) throw err;
 
     console.log("Loaded: " + filename);
+    outputLeft = filename.split(".")
+    output = outputLeft[0] + "-out.txt"
 
     // first line of file determines parameters, rest of lines are projectile definitions
     var [parameterLine, ...projectileLines] = data.split("\n");
@@ -255,7 +257,7 @@ fs.readFile(filename, "utf8", function (err, data) {
     // speed in meters/second, angle in degrees
     data =  (truncateDecimal(minSpeed) + " m/s " + truncateDecimal(maxSpeed) + " m/s " + truncateDecimal(minXZ) + " deg " + truncateDecimal(maxXZ) + " deg " + truncateDecimal(minYZ) + " deg " + truncateDecimal(maxYZ) + " deg");
 
-    fs.writeFile("test.txt", data, function (err) {
+    fs.writeFile(output, data, function (err) {
         if (err) throw err;
     });
 });
